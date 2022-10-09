@@ -3,11 +3,14 @@ on:
     paths:
       - 'src/ipv4_list.txt'
       - 'src/ipv6_list.txt'
+      - '.github/workflows/run.yml'
 
 name: add new IPs
 jobs:
-  sync:
+  sort:
     runs-on: ubuntu-20.04
+    env:
+      TZ: Europe/Busingen
     steps:
       
       - name: Checkout
@@ -23,10 +26,24 @@ jobs:
           git config --local user.name "github-action[bot]"
           git config --local user.email "${{ secrets.EMAIL }}"
           git add .
-          git commit -am "update on $(date)"
+          git commit -am "add on $(date +%H:%M)"
       
       - name: Push Changes
         uses: ad-m/github-push-action@master
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: ${{ github.ref }}
+
+      - name: Publish
+        run: |
+          mkdir -p index
+          echo "xunlei.neuq.de" > CNAME
+          cp -r index.html CNAME IPV4.txt IPV6.txt index
+      
+      - name: Deploy to GitHub Pages
+        uses: crazy-max/ghaction-github-pages@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          target_branch: gh-pages
+          build_dir: index
