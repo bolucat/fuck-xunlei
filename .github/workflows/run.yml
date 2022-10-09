@@ -1,0 +1,32 @@
+on:
+  push:
+    paths:
+      - 'src/ipv4_list.txt'
+      - 'src/ipv6_list.txt'
+
+name: add new IPs
+jobs:
+  sync:
+    runs-on: ubuntu-20.04
+    steps:
+      
+      - name: Checkout
+        uses: actions/checkout@v2
+        
+      - name: Add new IPs
+        run: |
+          chmod +x sort.sh
+          ./sort.sh
+      
+      - name: Commit Changes
+        run: |
+          git config --local user.name "github-action[bot]"
+          git config --local user.email "${{ secrets.EMAIL }}"
+          git add .
+          git commit -am "update on $(date)"
+      
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
